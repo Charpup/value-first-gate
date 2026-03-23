@@ -65,6 +65,18 @@ Challenge at least these:
 4. Which dependency is truly required vs habitual?
 5. What metric would falsify the idea quickly?
 
+### 2+) First-Principles Critique Layer
+
+Before scoring, force a structured deconstruction. If any question below cannot be answered clearly, apply a score cap (max 3/5) on the corresponding dimension.
+
+1. **Root value**: What is the fundamental reason this exists? Strip away all assumptions — what remains?
+2. **True beneficiary**: Who actually benefits? (User / System / Vanity metric?)
+3. **Cost of inaction**: What is the worst outcome if we do nothing for 90 days? (Tests whether urgency is real)
+4. **80% shortcut**: Is there a simpler intervention that achieves 80% of the value? (Tests necessity)
+5. **Key uncertainty**: What is the primary unknown that could invalidate this decision? (Tests confidence)
+
+**Scoring impact**: For each question with an unclear or weak answer, note it explicitly and cap that dimension's score at 3/5 (marked as "First-principles unclear").
+
 ### 3) Value Scoring
 
 Score each criterion from **0 to 5** using evidence.
@@ -92,6 +104,8 @@ Score each criterion from **0 to 5** using evidence.
 - **NO-GO**: `<= 15` or critical risk cannot be mitigated
 
 If confidence is `Low`, cap final decision at `REVISE` even if score says GO.
+
+If 2+ First-Principles Critique questions were unclear, cap final decision at `REVISE`.
 
 ### 4) Go/No-Go Decision
 

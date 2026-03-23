@@ -34,6 +34,15 @@
 4. **True required dependencies vs habitual dependencies:**
 5. **Fast falsification metric:**
 
+### 3.3 First-Principles Critique Layer
+1. **Root value** (strip all assumptions — what remains?):
+2. **True beneficiary** (user / system / vanity metric?):
+3. **Cost of inaction** (worst outcome in 90 days?):
+4. **80% shortcut** (simpler intervention exists?):
+5. **Key uncertainty** (what could invalidate this decision?):
+
+*Note any unclear answers here — each will cap the corresponding score dimension at 3/5.*
+
 ## 4) Value Scoring Rubric
 | Criterion | Score (0-5) | Evidence | Notes |
 |---|---:|---|---|
@@ -44,6 +53,8 @@
 | Effort Efficiency |  |  |  |
 | Risk Controllability |  |  |  |
 | **Total** | **/30** |  |  |
+
+*Scores capped at 3/5 are marked "First-principles unclear".*
 
 ## 5) Risk and Anti-Patterns
 ### 5.1 Top Risks and Mitigations
