@@ -1,0 +1,14 @@
+{
+  "contractVersion": "1.0.0",
+  "component": "value-first-gate",
+  "interface": {
+    "health": "test -f references/value-review-template.md",
+    "capabilities": [
+      "go|revise|no-go evaluation template",
+      "value review report schema",
+      "gate rubric reference"
+    ],
+    "export_state": "template-only: no mutable runtime state",
+    "import_state": "template-only: no mutable runtime state"
+  }
+}
