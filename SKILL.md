@@ -1,6 +1,23 @@
 ---
 name: value-first-gate
-description: Force a pre-implementation value gate before coding starts. Use when the user asks for planning, review, prioritization, tradeoff analysis, "should we build this", roadmap ordering, or scope decisions before implementation. Run this after planning and before any TDD/SDD or coding workflow to prevent low-value execution and convert vague ideas into a measurable Go/No-Go decision.
+description: >
+  Force a pre-implementation value gate before coding starts. Use when the user asks
+  for planning, review, prioritization, tradeoff analysis, "should we build this",
+  roadmap ordering, or scope decisions before implementation. Also trigger on:
+  值不值得做、做个价值评估、先评估一下、有没有必要做、这个需求值得投入吗、
+  go/no-go 决策、优先级评估。Run this after planning and before any TDD/SDD or coding.
+version: "1.1"
+triggers:
+  - "值不值得做"
+  - "做个价值评估"
+  - "先评估一下"
+  - "有没有必要做"
+  - "这个需求值得投入吗"
+  - "go/no-go"
+  - "优先级评估"
+  - "value gate"
+  - "should we build this"
+  - "is this worth doing"
 ---
 
 # Value-First Gate
