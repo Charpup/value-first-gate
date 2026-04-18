@@ -99,7 +99,12 @@ def extract_devils_advocate(text: str) -> str:
 
 
 def extract_anti_patterns(text: str) -> tuple[list[str], bool]:
-    """Return (flagged_patterns, all_silent)."""
+    """Return (flagged_patterns, all_silent).
+
+    Single-line regex only: all whitespace-matching tokens use [ \\t]* (never \\s*)
+    to prevent the \"_not present because:_\" pattern from consuming a newline
+    and capturing the next checklist item's prefix as a \"justification.\"
+    """
     patterns = [
         ("Solution-first bias", "solution_first_bias"),
         ("Metric theater", "metric_theater"),
@@ -112,18 +117,60 @@ def extract_anti_patterns(text: str) -> tuple[list[str], bool]:
     justified = 0
     for label, key in patterns:
         # - [x] Solution-first bias ...
-        if re.search(rf"-\s*\[x\]\s*{re.escape(label)}", text, flags=re.IGNORECASE):
+        if re.search(rf"-[ \t]*\[x\][ \t]*{re.escape(label)}", text, flags=re.IGNORECASE):
             flagged.append(key)
             continue
-        # - [ ] ... — not present because: <text>
+        # Single-line match only. [^\n]*? prevents crossing into the next bullet.
         unchecked = re.search(
-            rf"-\s*\[\s*\]\s*{re.escape(label)}.*?—\s*_not present because:_\s*([^\n]+)",
+            rf"-[ \t]*\[[ \t]*\][ \t]*{re.escape(label)}[^\n]*?—[ \t]*_not present because:_[ \t]*([^\n]+)",
             text,
         )
         if unchecked and unchecked.group(1).strip() and not unchecked.group(1).strip().startswith("_"):
             justified += 1
     all_silent = (len(flagged) == 0) and (justified == 0)
     return flagged, all_silent
+
+
+def extract_critique_unclear_count(text: str) -> int:
+    """Count First-Principles Critique Layer questions whose answer reads unclear.
+
+    Looks at Section 3.3's five labelled questions. A question counts as unclear if:
+      - it's missing entirely from the document
+      - the answer is empty or a placeholder (-, —, N/A)
+      - the answer contains an uncertainty marker (unclear, TBD, N/A, don't know, not sure)
+      - the answer is the template placeholder italic hint text
+    """
+    labels = [
+        "Root value",
+        "True beneficiary",
+        "Cost of inaction",
+        "80% shortcut",
+        "Key uncertainty",
+    ]
+    unclear_markers = re.compile(
+        r"\b(unclear|tbd|n/?a|not sure|i don'?t know|don'?t know|idk)\b",
+        re.IGNORECASE,
+    )
+    unclear = 0
+    for label in labels:
+        # Handles both `**Label** (desc): answer` and `**Label:** answer` formats.
+        m = re.search(
+            rf"\*\*{re.escape(label)}\b[^*\n]*?\*\*[ \t]*:?[ \t]*([^\n]*)",
+            text,
+        )
+        if not m:
+            unclear += 1
+            continue
+        ans = m.group(1).strip()
+        placeholders = {"", "-", "—", "N/A", "n/a"}
+        if ans in placeholders:
+            unclear += 1
+        elif ans.startswith("_") and ans.endswith("_"):
+            # Template placeholder italic hint
+            unclear += 1
+        elif unclear_markers.search(ans):
+            unclear += 1
+    return unclear
 
 
 def main() -> int:
@@ -142,6 +189,7 @@ def main() -> int:
     empty_evidence = extract_evidence_empty_count(text)
     da = extract_devils_advocate(text)
     flagged, all_silent = extract_anti_patterns(text)
+    critique_unclear = extract_critique_unclear_count(text)
 
     score_values = list(scores.values())
     score_spread = max(score_values) - min(score_values) if score_values else 0
@@ -151,7 +199,7 @@ def main() -> int:
         "score_spread_zero": score_spread == 0,
         "evidence_cells_empty_count": empty_evidence,
         "devils_advocate_empty": not da.strip(),
-        "critique_unclear_count": 0,  # Not auto-extracted; author-supplied or check_review can flag
+        "critique_unclear_count": critique_unclear,
         "anti_patterns_all_silent": all_silent,
         "any_triggered": False,
     }
