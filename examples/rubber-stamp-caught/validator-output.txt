@@ -1,0 +1,16 @@
+$ python scripts/check_review.py examples/rubber-stamp-caught/value-review.json
+
+sidecar: examples/rubber-stamp-caught/value-review.json
+verdict: REVISE
+any_rubber_stamp_triggered: True
+violations (5):
+  - R1: score_spread == 0 — all 6 criterion scores are identical (rubber-stamp signal)
+  - R2: 4 evidence cells left empty (>= 2 triggers REVISE)
+  - R3: Devil's Advocate field is blank — required non-empty
+  - R4: 3 critique questions unclear (>= 2 triggers REVISE)
+  - R5: All 6 anti-patterns left unchecked AND unjustified — honest reviews have something to say
+
+Result: rubber-stamp signals present; verdict correctly degraded.
+
+$ echo "Exit code: $?"
+Exit code: 1

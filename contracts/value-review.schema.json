@@ -1,0 +1,157 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Charpup/claude-workspace/schemas/value-review.schema.json",
+  "title": "value-review.json sidecar",
+  "description": "Machine-readable sidecar accompanying value-review.md. Authoritative output of value-first-gate. Read by triadev to populate triadev-handoff.json value_gate fields.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "proposal",
+    "generated_at",
+    "verdict",
+    "total_score",
+    "confidence",
+    "per_criterion_scores",
+    "devils_advocate",
+    "rubber_stamp_flags",
+    "score_spread",
+    "review_path"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$comment": { "type": "string" },
+    "schema_version": { "type": "string", "const": "2.0" },
+    "proposal": { "type": "string" },
+    "generated_at": { "type": "string", "description": "ISO-8601 timestamp" },
+    "owner": { "type": "string" },
+    "verdict": { "type": "string", "enum": ["GO", "REVISE", "NO-GO"] },
+    "total_score": { "type": "integer", "minimum": 0, "maximum": 30 },
+    "confidence": { "type": "string", "enum": ["High", "Medium", "Low"] },
+    "per_criterion_scores": {
+      "type": "object",
+      "required": [
+        "user_impact",
+        "strategic_fit",
+        "urgency",
+        "evidence_strength",
+        "effort_efficiency",
+        "risk_controllability"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "user_impact": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "strategic_fit": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "urgency": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "evidence_strength": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "effort_efficiency": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "risk_controllability": { "type": "integer", "minimum": 0, "maximum": 5 }
+      }
+    },
+    "critique_caps_applied": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dimension", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "user_impact",
+              "strategic_fit",
+              "urgency",
+              "evidence_strength",
+              "effort_efficiency",
+              "risk_controllability"
+            ]
+          },
+          "reason": { "type": "string", "description": "Which critique question was unclear" }
+        }
+      }
+    },
+    "anti_patterns_flagged": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "solution_first_bias",
+          "metric_theater",
+          "roadmap_cargo_cult",
+          "unpriced_complexity",
+          "single_stakeholder_capture",
+          "evidence_laundering"
+        ]
+      }
+    },
+    "devils_advocate": {
+      "type": "string",
+      "description": "The strongest argument AGAINST this decision, one sentence. Empty string triggers rubber_stamp_flags.devils_advocate_empty = true."
+    },
+    "rubber_stamp_flags": {
+      "type": "object",
+      "required": [
+        "score_spread_zero",
+        "evidence_cells_empty_count",
+        "devils_advocate_empty",
+        "critique_unclear_count",
+        "anti_patterns_all_silent",
+        "any_triggered"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "score_spread_zero": { "type": "boolean", "description": "True if all 6 criterion scores are identical" },
+        "evidence_cells_empty_count": { "type": "integer", "minimum": 0, "maximum": 6 },
+        "devils_advocate_empty": { "type": "boolean" },
+        "critique_unclear_count": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "anti_patterns_all_silent": { "type": "boolean", "description": "True if 0 anti-patterns checked AND 0 justifications provided" },
+        "any_triggered": { "type": "boolean", "description": "Derived: true if any rule fires. When true, verdict MUST be REVISE or NO-GO, never GO." }
+      }
+    },
+    "score_spread": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "max(per_criterion_scores) - min(per_criterion_scores)"
+    },
+    "review_path": {
+      "type": "string",
+      "description": "Relative path to accompanying value-review.md"
+    },
+    "previous_reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "verdict", "generated_at"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string" },
+          "verdict": { "type": "string", "enum": ["GO", "REVISE", "NO-GO"] },
+          "generated_at": { "type": "string" }
+        }
+      }
+    },
+    "preconditions_to_change_verdict": { "type": "string" },
+    "next_action_48h": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "action": { "type": "string" },
+        "owner": { "type": "string" },
+        "expected_signal": { "type": "string" },
+        "re_evaluation_date": { "type": "string" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "Rule: if any rubber-stamp flag triggered, verdict must not be GO",
+      "if": { "properties": { "rubber_stamp_flags": { "properties": { "any_triggered": { "const": true } } } } },
+      "then": { "properties": { "verdict": { "enum": ["REVISE", "NO-GO"] } } }
+    },
+    {
+      "$comment": "Rule: if confidence is Low, verdict must not be GO",
+      "if": { "properties": { "confidence": { "const": "Low" } } },
+      "then": { "properties": { "verdict": { "enum": ["REVISE", "NO-GO"] } } }
+    }
+  ]
+}

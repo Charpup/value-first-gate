@@ -1,14 +1,51 @@
 {
-  "contractVersion": "1.0.0",
+  "contractVersion": "2.0.0",
   "component": "value-first-gate",
+  "role": "Pre-implementation value gate: GO/REVISE/NO-GO decision with rubber-stamp guards",
   "interface": {
-    "health": "test -f references/value-review-template.md",
-    "capabilities": [
-      "go|revise|no-go evaluation template",
-      "value review report schema",
-      "gate rubric reference"
+    "reads": {
+      "triadev-handoff.json": [
+        "planning.tasks_extracted",
+        "scheduling.batches",
+        "current_phase"
+      ]
+    },
+    "writes": {
+      "triadev-handoff.json": [
+        "value_gate.status",
+        "value_gate.verdict",
+        "value_gate.review_path"
+      ]
+    },
+    "owns": [
+      "value-review.md",
+      "value-review.json"
     ],
-    "export_state": "template-only: no mutable runtime state",
-    "import_state": "template-only: no mutable runtime state"
+    "capabilities": [
+      "six-dimension-rubric-scoring",
+      "first-principles-critique-layer",
+      "anti-pattern-detection",
+      "rubber-stamp-guards",
+      "devils-advocate-enforcement",
+      "verdict-sidecar-emission",
+      "revise-history-tracking"
+    ],
+    "scripts": {
+      "check_review": "python scripts/check_review.py <path-to-value-review.json>",
+      "emit_verdict_json": "python scripts/emit_verdict_json.py <path-to-value-review.md>"
+    }
+  },
+  "handoff_mapping": {
+    "$comment": "How value-first-gate output maps to triadev-handoff.json value_gate fields. triadev performs the mapping after reading value-review.json.",
+    "verdict_to_status": {
+      "GO": "passed",
+      "REVISE": "blocked",
+      "NO-GO": "blocked"
+    },
+    "gate_precondition_for_implementation": "verdict == 'GO' AND rubber_stamp_flags.any_triggered == false"
+  },
+  "dependencies": {
+    "triadev": ">=3.0.0",
+    "planning-with-files": ">=2.10.0"
   }
 }
