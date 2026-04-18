@@ -183,6 +183,13 @@ Return one verdict in both the markdown and the sidecar:
 - `REVISE`
 - `NO-GO`
 
+**Before** writing `verdict=GO` to `triadev-handoff.json.value_gate.verdict`, invoke [`verification-before-completion`](../verification-before-completion/SKILL.md) skill to verify:
+- (a) sidecar passes `contracts/value-review.schema.json`
+- (b) `scripts/check_review.py` exits 0 (0 violations)
+- (c) sidecar `rubber_stamp_flags.any_triggered == false`
+
+If any check fails, degrade verdict to `REVISE` or `NO-GO`.
+
 Then provide:
 
 - Top 3 reasons for verdict
