@@ -1,0 +1,43 @@
+{
+  "$comment": "Rubber-stamp caught sidecar. All 5 flags triggered. Verdict degraded to REVISE from author's original GO.",
+  "schema_version": "2.0",
+  "proposal": "Add dark mode toggle to internal dashboard",
+  "generated_at": "2026-04-18T14:00:00",
+  "owner": "Anon",
+  "verdict": "REVISE",
+  "total_score": 18,
+  "confidence": "Low",
+  "per_criterion_scores": {
+    "user_impact": 3,
+    "strategic_fit": 3,
+    "urgency": 3,
+    "evidence_strength": 3,
+    "effort_efficiency": 3,
+    "risk_controllability": 3
+  },
+  "critique_caps_applied": [
+    {"dimension": "user_impact", "reason": "Root value unclear"},
+    {"dimension": "strategic_fit", "reason": "True beneficiary unclear"},
+    {"dimension": "risk_controllability", "reason": "Key uncertainty unclear"}
+  ],
+  "anti_patterns_flagged": [],
+  "devils_advocate": "",
+  "rubber_stamp_flags": {
+    "score_spread_zero": true,
+    "evidence_cells_empty_count": 4,
+    "devils_advocate_empty": true,
+    "critique_unclear_count": 3,
+    "anti_patterns_all_silent": true,
+    "any_triggered": true
+  },
+  "score_spread": 0,
+  "review_path": "value-review.md",
+  "previous_reviews": [],
+  "preconditions_to_change_verdict": "Fill Devil's Advocate field, score with spread, fill evidence cells, answer critique questions, check or justify anti-patterns.",
+  "next_action_48h": {
+    "action": "Re-do the gate with honest thinking on all sections",
+    "owner": "Anon",
+    "expected_signal": "Sidecar has any_triggered: false",
+    "re_evaluation_date": "2026-04-19"
+  }
+}

@@ -1,3 +1,12 @@
+---
+# This YAML frontmatter is a HUMAN-FACING mirror of value-review.json (the authoritative sidecar).
+# If the two disagree, the sidecar wins. Regenerate the sidecar via scripts/emit_verdict_json.py after edits.
+verdict: "GO | REVISE | NO-GO"
+total_score: 0
+confidence: "High | Medium | Low"
+generated_at: "YYYY-MM-DDTHH:MM:SS"
+---
+
 # value-review.md
 
 ## 1) Decision Summary
@@ -56,6 +65,8 @@
 
 *Scores capped at 3/5 are marked "First-principles unclear".*
 
+**Rubber-stamp guard — do not leave Evidence cells empty.** Each empty Evidence cell counts toward the validator's rubber-stamp detection (≥2 empty → forced REVISE).
+
 ## 5) Risk and Anti-Patterns
 ### 5.1 Top Risks and Mitigations
 | Risk | Severity (L/M/H) | Mitigation | Residual Risk |
@@ -63,12 +74,14 @@
 |  |  |  |  |
 
 ### 5.2 Anti-Patterns Check
-- [ ] Solution-first bias
-- [ ] Metric theater
-- [ ] Roadmap cargo-cult
-- [ ] Unpriced complexity
-- [ ] Single-stakeholder capture
-- [ ] Evidence laundering
+For each, either check the box OR provide a one-line justification for why it's not present. Empty boxes with no justification count as rubber-stamp signal.
+
+- [ ] Solution-first bias — _not present because:_
+- [ ] Metric theater — _not present because:_
+- [ ] Roadmap cargo-cult — _not present because:_
+- [ ] Unpriced complexity — _not present because:_
+- [ ] Single-stakeholder capture — _not present because:_
+- [ ] Evidence laundering — _not present because:_
 
 If 2+ checked and unresolved, default to `REVISE` or `NO-GO`.
 
@@ -91,3 +104,10 @@ If 2+ checked and unresolved, default to `REVISE` or `NO-GO`.
 - If `GO`: Define scope boundaries, success metrics, and risk controls for TDD/SDD hand-off.
 - If `REVISE`: Define smallest validation experiment and rerun gate after evidence is collected.
 - If `NO-GO`: List 1-2 higher-value alternatives.
+
+## 9) Devil's Advocate Pass
+
+**The strongest argument against this decision is:**
+_(One sentence. Must be filled — blank triggers forced REVISE. Even if you believe the decision is correct, state the strongest counterargument you had to defeat.)_
+
+---

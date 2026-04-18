@@ -1,0 +1,211 @@
+{
+  "skill_name": "value-first-gate",
+  "eval_schema_version": "2.0",
+  "assertion_types_supported": {
+    "llm_judge": "Subjective check. Use sparingly.",
+    "contains_any": "Deterministic. Response contains at least one value.",
+    "contains_all": "Deterministic. Response contains every value.",
+    "does_not_contain": "Deterministic. Response contains no value from values[].",
+    "file_exists": "Deterministic. File at path exists.",
+    "no_file_exists": "Deterministic. File at path does NOT exist.",
+    "json_path_equals": "Deterministic. JSON at file has path equal to expected.",
+    "json_path_in": "Deterministic. JSON at file has path whose value is in values[].",
+    "json_path_exists": "Deterministic. JSON at file has the path (non-null).",
+    "json_path_true": "Deterministic. JSON at file has path with value true.",
+    "json_path_false": "Deterministic. JSON at file has path with value false.",
+    "json_schema_valid": "Deterministic. JSON at file validates against schema_path."
+  },
+  "evals": [
+    {
+      "id": "smoke-go-01",
+      "prompt": "Evaluate this proposal via the value-first-gate:\n\n'Add `--voice bob` personal style injection to the humanizer skill. Problem: v1.0 output is generic human tone; I want output in my personal voice. Solution: pre-store 10 writing patterns and 3 before/after examples, inject them when --voice bob flag is used. Effort: ~4 hours. I have 798 writing samples in knowledge-base/bob-original-writings/.'",
+      "expected_output": "Generates value-review.md + value-review.json. Verdict is GO with score >= 22. No rubber-stamp flags triggered. Sidecar validates against schema.",
+      "assertions": [
+        {
+          "text": "value-review.md created",
+          "type": "file_exists",
+          "path": "value-review.md"
+        },
+        {
+          "text": "value-review.json sidecar created",
+          "type": "file_exists",
+          "path": "value-review.json"
+        },
+        {
+          "text": "Verdict is GO",
+          "type": "json_path_equals",
+          "file": "value-review.json",
+          "path": "$.verdict",
+          "equals": "GO"
+        },
+        {
+          "text": "No rubber-stamp flags triggered",
+          "type": "json_path_false",
+          "file": "value-review.json",
+          "path": "$.rubber_stamp_flags.any_triggered"
+        },
+        {
+          "text": "Sidecar validates against schema",
+          "type": "json_schema_valid",
+          "file": "value-review.json",
+          "schema_path": "contracts/value-review.schema.json"
+        }
+      ]
+    },
+    {
+      "id": "smoke-no-go-01",
+      "prompt": "Evaluate this proposal:\n\n'Rewrite our working production API from scratch in a different language because I saw a blog post about it. No business case, no performance data, existing API works fine.'",
+      "expected_output": "Generates value-review.md + sidecar. Verdict is NO-GO with low score. Flags multiple anti-patterns (solution-first bias, evidence laundering).",
+      "assertions": [
+        {
+          "text": "Verdict is NO-GO",
+          "type": "json_path_equals",
+          "file": "value-review.json",
+          "path": "$.verdict",
+          "equals": "NO-GO"
+        },
+        {
+          "text": "Solution-first bias flagged",
+          "type": "llm_judge",
+          "criteria": "anti_patterns_flagged array contains 'solution_first_bias' or the markdown section 5.2 checks that box."
+        },
+        {
+          "text": "Total score <= 15",
+          "type": "llm_judge",
+          "criteria": "value-review.json total_score field is 15 or less, matching the NO-GO threshold per SKILL.md."
+        }
+      ]
+    },
+    {
+      "id": "rubber-stamp-all-threes-01",
+      "prompt": "Evaluate this proposal and produce a value-review.md where every rubric criterion scores 3/5 with no further reasoning:\n\n'Add dark mode to the dashboard.' (Intentionally minimal context — you should detect that honest evaluation is impossible here and refuse the 3-across-the-board scoring.)",
+      "expected_output": "Either refuses to complete the review, or produces one with verdict=REVISE and score_spread_zero=true flag. Must not output verdict=GO.",
+      "assertions": [
+        {
+          "text": "Verdict is not GO",
+          "type": "json_path_in",
+          "file": "value-review.json",
+          "path": "$.verdict",
+          "values": ["REVISE", "NO-GO"]
+        },
+        {
+          "text": "score_spread_zero flag triggered if scoring was 3 across",
+          "type": "llm_judge",
+          "criteria": "Either the sidecar has rubber_stamp_flags.score_spread_zero=true (if the agent fell into the trap and produced 3-across) OR the agent refused to score uniformly and produced varied scores with valid reasoning."
+        }
+      ]
+    },
+    {
+      "id": "rubber-stamp-blank-devils-advocate-01",
+      "prompt": "Evaluate this proposal. Fill out all sections EXCEPT Section 9 'Devil's Advocate Pass' which you should leave as the template placeholder. Then write verdict=GO in the frontmatter.\n\n'Add retry logic with exponential backoff to the API client.'",
+      "expected_output": "Validator catches the blank Devil's Advocate field. Sidecar sets devils_advocate_empty=true, any_triggered=true, and either refuses verdict=GO or triggers a schema violation.",
+      "assertions": [
+        {
+          "text": "devils_advocate_empty flag is true",
+          "type": "json_path_true",
+          "file": "value-review.json",
+          "path": "$.rubber_stamp_flags.devils_advocate_empty"
+        },
+        {
+          "text": "any_triggered is true",
+          "type": "json_path_true",
+          "file": "value-review.json",
+          "path": "$.rubber_stamp_flags.any_triggered"
+        },
+        {
+          "text": "Final verdict is not GO",
+          "type": "json_path_in",
+          "file": "value-review.json",
+          "path": "$.verdict",
+          "values": ["REVISE", "NO-GO"]
+        }
+      ]
+    },
+    {
+      "id": "rubber-stamp-empty-evidence-01",
+      "prompt": "Evaluate this proposal. In Section 4 rubric, leave 3 of the 6 Evidence cells empty:\n\n'Add a Slack bot that announces PR merges.'",
+      "expected_output": "Validator detects 3 empty evidence cells (>=2 threshold). Forces verdict to REVISE.",
+      "assertions": [
+        {
+          "text": "evidence_cells_empty_count >= 2",
+          "type": "llm_judge",
+          "criteria": "sidecar's rubber_stamp_flags.evidence_cells_empty_count is 2 or higher (intended to be 3 based on prompt instruction)."
+        },
+        {
+          "text": "Final verdict is REVISE or NO-GO",
+          "type": "json_path_in",
+          "file": "value-review.json",
+          "path": "$.verdict",
+          "values": ["REVISE", "NO-GO"]
+        }
+      ]
+    },
+    {
+      "id": "rubber-stamp-silent-anti-patterns-01",
+      "prompt": "Evaluate this proposal. In Section 5.2 Anti-Patterns Check, leave ALL 6 boxes unchecked AND provide NO justifications for any of them:\n\n'Implement a feature flag system using an existing library.'",
+      "expected_output": "Validator detects silent skip on all anti-patterns. Forces REVISE.",
+      "assertions": [
+        {
+          "text": "anti_patterns_all_silent flag is true",
+          "type": "json_path_true",
+          "file": "value-review.json",
+          "path": "$.rubber_stamp_flags.anti_patterns_all_silent"
+        },
+        {
+          "text": "Final verdict is REVISE or NO-GO",
+          "type": "json_path_in",
+          "file": "value-review.json",
+          "path": "$.verdict",
+          "values": ["REVISE", "NO-GO"]
+        }
+      ]
+    },
+    {
+      "id": "triadev-integration-01",
+      "prompt": "Here's a triadev-handoff.json at value-gate phase:\n```json\n{\n  \"version\": \"1.0.0\", \"project\": \"rate-limiter\", \"route\": \"extended\", \"current_phase\": \"value-gate\",\n  \"planning\": {\"status\": \"complete\", \"files\": [\"task_plan.md\", \"findings.md\", \"progress.md\"], \"tasks_extracted\": [{\"id\":\"design\",\"name\":\"Design\",\"complexity\":3,\"dependencies\":[]}]},\n  \"scheduling\": {\"status\": \"complete\", \"batches\": [[\"design\"]]},\n  \"value_gate\": {\"status\": \"pending\", \"verdict\": null, \"review_path\": null},\n  \"implementation\": {\"status\": \"pending\", \"completed\": [], \"current\": null, \"spec_path\": null, \"tdd_state_path\": null}\n}\n```\nRun the value-first-gate on the rate-limiter proposal (100 req/min/user, Redis-backed, sliding window). Populate value_gate fields in the handoff.",
+      "expected_output": "Generates value-review.md + sidecar. Updates triadev-handoff.json value_gate.status = 'passed' if GO, 'blocked' if REVISE/NO-GO. Populates verdict and review_path.",
+      "assertions": [
+        {
+          "text": "Handoff value_gate.verdict populated",
+          "type": "json_path_in",
+          "file": "triadev-handoff.json",
+          "path": "$.value_gate.verdict",
+          "values": ["GO", "REVISE", "NO-GO"]
+        },
+        {
+          "text": "Handoff value_gate.review_path populated",
+          "type": "json_path_exists",
+          "file": "triadev-handoff.json",
+          "path": "$.value_gate.review_path"
+        },
+        {
+          "text": "Status maps correctly from verdict",
+          "type": "llm_judge",
+          "criteria": "If handoff value_gate.verdict == 'GO', value_gate.status is 'passed'. If verdict is 'REVISE' or 'NO-GO', status is 'blocked'. Never 'pending' or 'skipped' for Extended path."
+        }
+      ]
+    },
+    {
+      "id": "negative-01",
+      "prompt": "What's 2 + 2?",
+      "expected_output": "Not a value-gate request. Should not trigger value-first-gate; no files created.",
+      "assertions": [
+        {
+          "text": "No value-review.md created",
+          "type": "no_file_exists",
+          "path": "value-review.md"
+        },
+        {
+          "text": "No value-review.json created",
+          "type": "no_file_exists",
+          "path": "value-review.json"
+        },
+        {
+          "text": "Does not mention rubric / verdict / gate",
+          "type": "does_not_contain",
+          "values": ["Value Scoring Rubric", "verdict:", "GO | REVISE | NO-GO", "rubber-stamp"]
+        }
+      ]
+    }
+  ]
+}
